@@ -1,43 +1,75 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+﻿from fastapi import FastAPI, Body
 from pydantic import BaseModel
 from typing import List
+from datetime import datetime
 import uvicorn
 
-app = FastAPI(title="🧠 AI E-Commerce Intelligence", version="1.0.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"]
+app = FastAPI(
+    title="🤖 AI-Driven E-Commerce Intelligence Platform", 
+    version="1.0.0",
+    description="Azure Final Year Project - FastAPI + MLOps Ready"
 )
 
-@app.get("/")
-async def root():
-    return {"message": "AI E-Commerce Platform LIVE! 🚀"}
-
-@app.get("/health")
-async def health():
-    return {"status": "healthy", "version": "1.0.0"}
-
-# 🆕 AI-POWERED SEARCH
 class SearchRequest(BaseModel):
     query: str
     limit: int = 5
+    user_id: str = "guest"
 
-@app.post("/api/v1/search")
-async def ai_search(request: SearchRequest):
-    # Production-ready mock (LangChain next!)
-    products = [
-        {
-            "id": f"prod_{i}",
-            "name": f"🎯 AI Found: {request.query}",
-            "price": 999.99,
-            "score": 0.95 - i*0.05
-        } for i in range(request.limit)
-    ]
-    return {"products": products, "total": len(products), "query": request.query}
+class Product(BaseModel):
+    id: str
+    name: str
+    price: float
+    score: float
+    category: str
+
+@app.post("/api/v1/search", response_model=dict)
+async def ai_product_search(request: SearchRequest):
+    """🧠 AI-Powered Semantic Product Search (RAG Ready)"""
+    
+    # Simulate LangChain + Vector Search
+    products: List[Product] = [
+        Product(
+            id="prod_001",
+            name=f"🎯 {request.query} Pro Max - AI Top Pick",
+            price=1299.99,
+            score=0.98,
+            category="Electronics"
+        ),
+        Product(
+            id="prod_002", 
+            name=f"💻 {request.query} Ultra - 4.9⭐",
+            price=899.99,
+            score=0.95,
+            category="Laptops"
+        )
+    ][:request.limit]
+    
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "user_id": request.user_id,
+        "query": request.query,
+        "results": [p.dict() for p in products],
+        "ai_analytics": {
+            "total_hits": len(products),
+            "avg_score": sum(p.score for p in products) / len(products),
+            "top_category": "Electronics"
+        }
+    }
+
+@app.get("/api/v1/health")
+async def health_check():
+    """🏥 Production Health Check"""
+    return {
+        "status": "🟢 HEALTHY",
+        "service": "AI E-Commerce API", 
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "deployed_on": "Azure Ready"
+    }
+
+@app.get("/")
+async def root():
+    return {"message": "🚀 AI E-Commerce Intelligence Platform LIVE!", "docs": "/docs"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
